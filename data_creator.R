@@ -94,7 +94,7 @@ comb_scores <- inner_join(school_level, ref_scores, by = 'UKPRN')
 # Mean Impact vs. REF
 outputs <- comb_scores %>% filter(category == 'Outputs')
 
-# Create variable to highlight specific schoolse graphically
+# Create variable to highlight specific schools graphically
 outputs$school_label <- 'Other'
 outputs$school_label[outputs$UKPRN == 10001478] <- 'City'
 outputs$school_label[outputs$UKPRN == 10004063] <- 'LSE'
@@ -130,7 +130,7 @@ comb_google$highlight[comb_google$school_label != 'Other'] <- 1
 comb_google$highlight <- comb_google$highlight %>% as.factor
 
 comb_out <- merge(outputs[, c('UKPRN', 'school', 'mean_impact')],
-                  comb_google[, c('UKPRN', 'google_40_perc', 'google_40_plus', 
+                  comb_google[, c('UKPRN', 'google_40_perc', 'google_40_plus',
                                   'ref_gpa')],
                   by = 'UKPRN')
 export(comb_out, 'data/gpa_impact_google.csv')

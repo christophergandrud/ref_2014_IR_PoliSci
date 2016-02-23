@@ -21,18 +21,18 @@ It is important to note that neither of these metrics contain information on boo
 
 # More Complex Model: Google Scholar + Impact Factor
 
-To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). The following figure compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line. The mean prediction error when using the two journal metrics was only 0.05. In other words, on average the model incorrectly predicted the REF GPA score by 0.05 GPA points or only 1.2% of the GPA scale.
+To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). The following figure compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line. The mean prediction error when using the two journal metrics was 0.05. In other words, on average the model incorrectly predicted the REF GPA score by 0.05 GPA points or 1.2% of the GPA scale.
 
 <div class="figure">
 <img src="README_files/figure-html/unnamed-chunk-1-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Both Journal Metrics for a Test Set of 17 Randomly Selected Universities"  />
 <p class="caption">Actual vs. Predicted 2014 REF Output GPAs Using Both Journal Metrics for a Test Set of 17 Randomly Selected Universities</p>
 </div>
 
-# Simpler model: Google Scholar-only
+# Simpler model: Google Scholar Only
 
 
 
-The percentage of journal submissions in the top Google Scholar lists is more strongly correlated with REF GPA scores than impact factors. Would a simpler model using just the Google Scholar metric perform just as well as the more complex two metric model? The following figures shows actual vs. predicted GPA scores for this model. The mean prediction error when using only the Google Scholar metric was 0.012. In other words, on average the model incorrectly predicted the REF GPA score by 0.01 GPA points or 0.3% of the GPA scale. The Goolge Scholar-only model actually out performs the the more complex model that also included information on impact factors.
+The percentage of journal submissions in the top Google Scholar lists is more strongly correlated with REF GPA scores than impact factors. Would a simpler model using just the Google Scholar metric perform just as well as the more complex two metric model? The following figures shows actual vs. predicted GPA scores for this model. The mean prediction error when using only the Google Scholar metric was 0.012. In other words, on average the model incorrectly predicted the REF GPA score by 0.01 GPA points or 0.3% of the GPA scale. The Goolge Scholar Only model actually out performs the the more complex model that also included information on impact factors.
 
 <div class="figure">
 <img src="README_files/figure-html/unnamed-chunk-3-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Metric for a Test Set of 17 Randomly Selected Universities"  />
@@ -40,9 +40,9 @@ The percentage of journal submissions in the top Google Scholar lists is more st
 </div>
 
 
-# Google Plus
+# Simple, But a Little More Complex: Google Plus
 
-The Google Top 20 IR and Political Science lists are notably lacking important political economy journals, notably *Review of International Political Economy* and *New Political Economy*. Does adding these journals to a "Google Scholar Plus" variable improve prediction performance? The following figure shows the predicted vs. actual REF GPAs for our test sample using the Google Scholar Plus variable. The mean prediction error when using only the Google Scholar Plus metric was 0.005. In other words, on average the model incorrectly predicted the REF GPA score by 0 GPA points or 0.1% of the GPA scale. The Goolge Scholar Plus model out performs both the two metric model and the Google Scholar only model.
+The Google Top 20 IR and Political Science lists are notably lacking important political economy journals, including *Review of International Political Economy* and *New Political Economy*. Does adding these journals to a "Google Scholar Plus" variable improve prediction performance? The following figure shows the predicted vs. actual REF GPAs for our test sample using the Google Scholar Plus variable. The mean prediction error when using only the Google Scholar Plus metric was 0.005. In other words, on average the model incorrectly predicted the REF GPA score by 0.005 GPA points or 0.1% of the GPA scale. The Goolge Scholar Plus model out performs both the Two Metric model and the Google Scholar Only model.
 
 <div class="figure">
 <img src="README_files/figure-html/unnamed-chunk-4-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Plus Metric for a Test Set of 17 Randomly Selected Universities"  />
@@ -50,11 +50,13 @@ The Google Top 20 IR and Political Science lists are notably lacking important p
 </div>
 
 
+# Conclusion
 
+For the International Relations/Political Science 2014 REF we can create highly accurate predictions of Output GPA using only universities' percentage of journal submissions that were from the Google Scholar IR and Political Science top 20 lists. Using subject specific knowledge to select two additional journals that are prominent in international political economy allows us to make even better predictions. It may be possible to make even better predictions by including information on high impact book publishers. 
 
-# Top 20 (IR + PS) Google Scholar Journals (February 2016)
+# Appendix: Top 20 (IR + PS) Google Scholar Journals (February 2016)
 
-For reference, the following is a list of the top 20 journals in the Google Scholar IR and Political Science categories. We also include the most recent Thomson-Reuters Impact factor to enable comparison between the two metrics.
+For reference, the following is a list of the top 20 journals in the Google Scholar IR and Political Science categories. We also include the most recent Thomson-Reuters Impact factor to enable comparison between the two metrics. Note that the table does not include 40 journals because some journals (*World Politics* and *Journal of Democracy* show up on both the IR and Political Science lists).
 
 
 Journal                                        TR Impact Factor

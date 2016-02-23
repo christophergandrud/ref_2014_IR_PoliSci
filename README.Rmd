@@ -3,12 +3,12 @@ title: "REF IR/Political Science Prediction Models (version 0.2)"
 author: "Christopher Gandrud"
 date: "23 February 2016"
 output:
-    html_document:
-        keep_md: true
-        fig_caption: true
-    pdf_document:
-        fig_caption: true
-        keep_tex: true
+  html_document:
+    fig_caption: yes
+    keep_md: yes
+  pdf_document:
+    fig_caption: yes
+    keep_tex: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -87,7 +87,7 @@ ggplot(gathered, aes(value, ref_gpa)) +
 
 # More Complex Model: Google Scholar + Impact Factor
 
-To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). The following figure compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line. The mean prediction error when using the two journal metrics was only `r mean(compare$residuals) %>% round(digits = 2)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(compare$residuals) %>% round(digits = 2)` GPA points or only `r (mean(compare$residuals)  / 4) %>% round(digits = 3) * 100`% of the GPA scale.
+To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). The following figure compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line. The mean prediction error when using the two journal metrics was `r mean(compare$residuals) %>% round(digits = 2)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(compare$residuals) %>% round(digits = 2)` GPA points or `r (mean(compare$residuals)  / 4) %>% round(digits = 3) * 100`% of the GPA scale.
 
 ```{r fig.cap='Actual vs. Predicted 2014 REF Output GPAs Using Both Journal Metrics for a Test Set of 17 Randomly Selected Universities'}
 ggplot(compare, aes(actual, predicted)) +
@@ -99,7 +99,7 @@ ggplot(compare, aes(actual, predicted)) +
     theme_bw()
 ```
 
-# Simpler model: Google Scholar-only
+# Simpler model: Google Scholar Only
 
 ```{r include=FALSE}
 # Google only
@@ -119,7 +119,7 @@ compare_3 <- data.frame(actual = test$ref_gpa, predicted = pred_3)
 compare_3$residuals <- compare_3$actual - compare_3$predicted
 ```
 
-The percentage of journal submissions in the top Google Scholar lists is more strongly correlated with REF GPA scores than impact factors. Would a simpler model using just the Google Scholar metric perform just as well as the more complex two metric model? The following figures shows actual vs. predicted GPA scores for this model. The mean prediction error when using only the Google Scholar metric was `r mean(compare_2$residuals) %>% round(digits = 3)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(compare_2$residuals) %>% round(digits = 2)` GPA points or `r (mean(compare_2$residuals)  / 4) %>% round(digits = 3) * 100`% of the GPA scale. The Goolge Scholar-only model actually out performs the the more complex model that also included information on impact factors.
+The percentage of journal submissions in the top Google Scholar lists is more strongly correlated with REF GPA scores than impact factors. Would a simpler model using just the Google Scholar metric perform just as well as the more complex two metric model? The following figures shows actual vs. predicted GPA scores for this model. The mean prediction error when using only the Google Scholar metric was `r mean(compare_2$residuals) %>% round(digits = 3)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(compare_2$residuals) %>% round(digits = 2)` GPA points or `r (mean(compare_2$residuals)  / 4) %>% round(digits = 3) * 100`% of the GPA scale. The Goolge Scholar Only model actually out performs the the more complex model that also included information on impact factors.
 
 ```{r fig.cap='Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Metric for a Test Set of 17 Randomly Selected Universities'}
 ggplot(compare_2, aes(actual, predicted)) +
@@ -133,9 +133,9 @@ ggplot(compare_2, aes(actual, predicted)) +
 ```
 
 
-# Google Plus
+# Simple, But a Little More Complex: Google Plus
 
-The Google Top 20 IR and Political Science lists are notably lacking important political economy journals, notably *Review of International Political Economy* and *New Political Economy*. Does adding these journals to a "Google Scholar Plus" variable improve prediction performance? The following figure shows the predicted vs. actual REF GPAs for our test sample using the Google Scholar Plus variable. The mean prediction error when using only the Google Scholar Plus metric was `r mean(compare_3$residuals) %>% round(digits = 3)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(compare_3$residuals) %>% round(digits = 2)` GPA points or `r (mean(compare_3$residuals)  / 4) %>% round(digits = 3) * 100`% of the GPA scale. The Goolge Scholar Plus model out performs both the two metric model and the Google Scholar only model.
+The Google Top 20 IR and Political Science lists are notably lacking important political economy journals, including *Review of International Political Economy* and *New Political Economy*. Does adding these journals to a "Google Scholar Plus" variable improve prediction performance? The following figure shows the predicted vs. actual REF GPAs for our test sample using the Google Scholar Plus variable. The mean prediction error when using only the Google Scholar Plus metric was `r mean(compare_3$residuals) %>% round(digits = 3)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(compare_3$residuals) %>% round(digits = 3)` GPA points or `r (mean(compare_3$residuals)  / 4) %>% round(digits = 3) * 100`% of the GPA scale. The Goolge Scholar Plus model out performs both the Two Metric model and the Google Scholar Only model.
 
 ```{r fig.cap='Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Plus Metric for a Test Set of 17 Randomly Selected Universities'}
 ggplot(compare_3, aes(actual, predicted)) +
@@ -149,11 +149,13 @@ ggplot(compare_3, aes(actual, predicted)) +
 ```
 
 
+# Conclusion
 
+For the International Relations/Political Science 2014 REF we can create highly accurate predictions of Output GPA using only universities' percentage of journal submissions that were from the Google Scholar IR and Political Science top 20 lists. Using subject specific knowledge to select two additional journals that are prominent in international political economy allows us to make even better predictions. It may be possible to make even better predictions by including information on high impact book publishers. 
 
-# Top 20 (IR + PS) Google Scholar Journals (February 2016)
+# Appendix: Top 20 (IR + PS) Google Scholar Journals (February 2016)
 
-For reference, the following is a list of the top 20 journals in the Google Scholar IR and Political Science categories. We also include the most recent Thomson-Reuters Impact factor to enable comparison between the two metrics.
+For reference, the following is a list of the top 20 journals in the Google Scholar IR and Political Science categories. We also include the most recent Thomson-Reuters Impact factor to enable comparison between the two metrics. Note that the table does not include 40 journals because some journals (*World Politics* and *Journal of Democracy* show up on both the IR and Political Science lists).
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Impact factors
