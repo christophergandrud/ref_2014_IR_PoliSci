@@ -1,4 +1,4 @@
-# REF IR/Political Science Prediction Models (version 0.1)
+# REF IR/Political Science Prediction Models (version 0.2)
 Christopher Gandrud  
 23 February 2016  
 
@@ -10,7 +10,7 @@ I conducted a simple Random Forest Regression to examine how IR/Political Scienc
 
 - **Percent** of article submissions from journals in the **top 20** IR or Political Science categories assembled by Google Scholar.
 
-Both of these metrics are highly correlated with REF Output GPAs. Mean impact factor has a correlation coefficient of 0.68 with REF Output GPAs and the REF GPA correlation the Google Scholar metric is 0.76. Figure 1 further illustrates these close relationships and City University's placement within them. 
+Both of these metrics are highly correlated with REF Output GPAs. Mean impact factor has a correlation coefficient of 0.68 with REF Output GPAs and the REF GPA correlation the Google Scholar metric is 0.76. The following figure further illustrates these close relationships and City University's placement within them. 
 
 It is important to note that neither of these metrics contain information on books and other non-journal materials which are also submitted to the REF.
 
@@ -21,26 +21,34 @@ It is important to note that neither of these metrics contain information on boo
 
 # More Complex Model: Google Scholar + Impact Factor
 
-To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). Figure 2 compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line.
+To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). The following figure compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line. The mean prediction error when using the two journal metrics was only 0.05. In other words, on average the model incorrectly predicted the REF GPA score by 0.05 GPA points or only 1.2% of the GPA scale.
 
 <div class="figure">
 <img src="README_files/figure-html/unnamed-chunk-1-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Both Journal Metrics for a Test Set of 17 Randomly Selected Universities"  />
 <p class="caption">Actual vs. Predicted 2014 REF Output GPAs Using Both Journal Metrics for a Test Set of 17 Randomly Selected Universities</p>
 </div>
 
-The mean prediction error when using the two journal metrics was only 0.05. In other words, on average the model incorrectly predicted the REF GPA score by 0.05 GPA points or only 1.2% of the GPA scale.
-
 # Simpler model: Google Scholar-only
 
-The percentage of journal submissions in the top Google Scholar lists is more strongly correlated with REF GPA scores than impact factors. Would a simpler model using just the Google Scholar metric perform just as well as the more complex two metric model?
+
+
+The percentage of journal submissions in the top Google Scholar lists is more strongly correlated with REF GPA scores than impact factors. Would a simpler model using just the Google Scholar metric perform just as well as the more complex two metric model? The following figures shows actual vs. predicted GPA scores for this model. The mean prediction error when using only the Google Scholar metric was 0.012. In other words, on average the model incorrectly predicted the REF GPA score by 0.01 GPA points or 0.3% of the GPA scale. The Goolge Scholar-only model actually out performs the the more complex model that also included information on impact factors.
 
 <div class="figure">
-<img src="README_files/figure-html/unnamed-chunk-2-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Metrics for a Test Set of 17 Randomly Selected Universities"  />
-<p class="caption">Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Metrics for a Test Set of 17 Randomly Selected Universities</p>
+<img src="README_files/figure-html/unnamed-chunk-3-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Metric for a Test Set of 17 Randomly Selected Universities"  />
+<p class="caption">Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Metric for a Test Set of 17 Randomly Selected Universities</p>
 </div>
 
 
-The mean prediction error when using only the Google Scholar metric was only 0.01. In other words, on average the model incorrectly predicted the REF GPA score by 0.01 GPA points or 0.3% of the GPA scale. The Goolge Scholar-only model actually out performs the the more complex model that also included information on impact factors.
+# Google Plus
+
+The Google Top 20 IR and Political Science lists are notably lacking important political economy journals, notably *Review of International Political Economy* and *New Political Economy*. Does adding these journals to a "Google Scholar Plus" variable improve prediction performance? The following figure shows the predicted vs. actual REF GPAs for our test sample using the Google Scholar Plus variable. The mean prediction error when using only the Google Scholar Plus metric was 0.005. In other words, on average the model incorrectly predicted the REF GPA score by 0 GPA points or 0.1% of the GPA scale. The Goolge Scholar Plus model out performs both the two metric model and the Google Scholar only model.
+
+<div class="figure">
+<img src="README_files/figure-html/unnamed-chunk-4-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Plus Metric for a Test Set of 17 Randomly Selected Universities"  />
+<p class="caption">Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Plus Metric for a Test Set of 17 Randomly Selected Universities</p>
+</div>
+
 
 
 

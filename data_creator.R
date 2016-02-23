@@ -15,7 +15,7 @@ library(DataCombine)
 possibles <- c('/git_repositories/ref_2014_IR_PoliSci/')
 set_valid_wd(possibles)
 
-# All submissions
+# All submissions ----------
 all_submissions <- import('data/raw/Output-Table 1.csv')
 
 # Only journals
@@ -39,7 +39,7 @@ comb_journals$journal[grep('^millennium', comb_journals$journal)] <- 'millennium
 
 comb_journals <- comb_journals %>% arrange(school, journal)
 
-# Journal impact factors
+# Journal impact factors -------------
 impact <- import('data/raw/Impact Factor.xlsx')
 impact <- impact[, c(1, 3, 5)]
 names(impact) <- c('journal', 'impact_factor', 'google_top')
@@ -58,6 +58,10 @@ comb <- left_join(comb_journals, impact, by = 'journal')
 
 comb$google_top[is.na(comb$google_top)] <- 0
 
+comb$google_plus <- comb$google_top
+comb$google_plus[comb$journal == 'review of international political economy'] <- 1
+comb$google_plus[comb$journal == 'new political economy'] <- 1
+
 # Create counter for total submissions
 comb$fake <- 1
 number_subs <- comb %>% group_by(school) %>% summarise(total_subs = sum(fake))
@@ -71,7 +75,7 @@ school_level$mean_impact <- school_level$total_impact / school_level$total_subs
 
 school_level <- right_join(school_codes, school_level, by = 'school')
 
-# REF scores
+# REF scores ----------------
 ref_scores <- import('data/raw/REF2014 Results.xlsx', skip = 6) %>%
     filter(`Unit of assessment number` == 21)
 
@@ -101,14 +105,17 @@ outputs$highlight <- 0
 outputs$highlight[outputs$school_label != 'Other'] <- 1
 outputs$highlight <- outputs$highlight %>% as.factor
 
-
 outputs$school_label <- outputs$school_label %>% as.factor
 
 # Google top 40
 google_40 <- comb %>% group_by(UKPRN) %>%
     summarize(google_40_perc = (sum(google_top) / sum(fake)) * 100)
 
-comb_google <- inner_join(google_40, ref_scores, by = 'UKPRN')
+google_40_plus <- comb %>% group_by(UKPRN) %>%
+    summarize(google_40_plus = (sum(google_plus) / sum(fake)) * 100)
+
+comb_google <- inner_join(google_40, google_40_plus, by = 'UKPRN')
+comb_google <- inner_join(comb_google, ref_scores, by = 'UKPRN')
 
 comb_google <- comb_google %>% filter(category == 'Outputs')
 
@@ -123,6 +130,7 @@ comb_google$highlight[comb_google$school_label != 'Other'] <- 1
 comb_google$highlight <- comb_google$highlight %>% as.factor
 
 comb_out <- merge(outputs[, c('UKPRN', 'school', 'mean_impact')],
-                  comb_google[, c('UKPRN', 'google_40_perc', 'ref_gpa')],
+                  comb_google[, c('UKPRN', 'google_40_perc', 'google_40_plus', 
+                                  'ref_gpa')],
                   by = 'UKPRN')
 export(comb_out, 'data/gpa_impact_google.csv')
