@@ -1,0 +1,163 @@
+---
+title: "REF IR/Political Science Prediction Models (version 0.1)"
+author: "Christopher Gandrud"
+date: "23 February 2016"
+output:
+    html_document:
+        keep_md: true
+    pdf_document:
+        fig_caption: true
+        keep_tex: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(rio)
+library(dplyr)
+library(randomForest)
+library(DataCombine)
+library(ggplot2)
+library(gridExtra)
+library(tidyr)
+
+set.seed(100)
+
+main <- import('data/gpa_impact_google.csv')
+main <- main %>% DropNA('ref_gpa')
+
+main$school_label <- 'Other'
+main$school_label[main$UKPRN == 10001478] <- 'City'
+main$school_label[main$UKPRN == 10004063] <- 'LSE'
+main$school_label[main$UKPRN == 10007774] <- 'Oxford'
+main$school_label[main$UKPRN == 10007791] <- 'Essex'
+
+main$highlight <- 0
+main$highlight[main$school_label != 'Other'] <- 1
+main$highlight <- main$highlight %>% as.factor
+
+# Create training and test sets
+rownames(main) <- 1:nrow(main)
+rows <- sample(x = 1:nrow(main), size = 0.7 * nrow(main))
+
+train <- main[rows,]
+test <- main[! rownames(main) %in% rows,]
+
+# Estimate model
+m1 <- randomForest(ref_gpa ~ google_40_perc + mean_impact, data = train)
+
+varImpPlot(m1)
+
+# Compare predicted to actual in the test data set
+pred <- predict(object = m1, newdata = test)
+compare <- data.frame(actual = test$ref_gpa, predicted = pred)
+compare$residuals <- compare$actual - compare$predicted
+```
+
+I conducted a simple Random Forest Regression to examine how IR/Political Science REF 2014 Output GPAs could be predicted using:
+
+- **Mean Impact Factor** for all of the journal article submissions that each university made. Note: if a journal was not assigned an impact factor[^impact_caveat] it is effectively given an impact factor of 0.
+
+- **Percent** of article submissions from journals in the **top 20** IR or Political Science categories assembled by Google Scholar.
+
+Both of these metrics are highly correlated with REF Output GPAs. Mean impact factor has a correlation coefficient of `r cor(main$ref_gpa, main$mean_impact) %>% round(digits = 2)` with REF Output GPAs and the REF GPA correlation the Google Scholar metric is `r cor(main$ref_gpa, main$google_40_perc) %>% round(digits = 2)`. Figure 1 further illustrates these close relationships and City University's placement within them. 
+
+It is important to note that neither of these metrics contain information on books and other non-journal materials which are also submitted to the REF.
+
+```{r descript, echo=FALSE, warning=FALSE, fig.cap='Comparing Universities\' REF 2014 Output GPA to Journal Submission Metrics', fig.lp='fig:'}
+
+custom_col <- c("#F2300F", "#E1BD6D", "#0b775e", "#EABE94", "#35274A")
+
+gathered <- main %>% gather(metric, value, 3:4)
+gathered$metric[gathered$metric == 'google_40_perc'] <- '% at Top of Google'
+gathered$metric[gathered$metric == 'mean_impact'] <- 'Mean Impact Factor'
+
+ggplot(gathered, aes(value, ref_gpa)) +
+    stat_smooth(colour = 'black') +
+    geom_point(aes(colour = school_label, size = highlight, alpha = highlight)) +
+    facet_wrap(~ metric, scales = 'free') +
+    scale_colour_manual(values = custom_col, name = '') +
+    scale_alpha_discrete(range = c(0.3, 1)) +
+    #xlab('\nMean Journal Submission Impact Factor') +
+    ylab('2014 REF Outputs GPA\n') +
+    xlab('') +
+    theme_bw() + guides(size = FALSE, alpha = FALSE)
+```
+
+# More Complex Model: Google Scholar + Impact Factor
+
+To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). Figure 2 compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line.
+
+```{r fig.cap='Actual vs. Predicted 2014 REF Output GPAs Using Both Journal Metrics for a Test Set of 17 Randomly Selected Universities'}
+ggplot(compare, aes(actual, predicted)) +
+    geom_point() +
+    scale_y_continuous(limits = c(0, 4)) +
+    scale_x_continuous(limits = c(0, 4)) +
+    geom_abline(intercept = 0, slope = 1, linetype = 'dotted') +
+    xlab('\nActual REF GPA') + ylab('Predicted REF GPA\n') +
+    theme_bw()
+```
+
+The mean prediction error when using the two journal metrics was only `r mean(compare$residuals) %>% round(digits = 2)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(compare$residuals) %>% round(digits = 2)` GPA points or only `r (mean(compare$residuals)  / 4) %>% round(digits = 3) * 100`% of the GPA scale.
+
+# Simpler model: Google Scholar-only
+
+The percentage of journal submissions in the top Google Scholar lists is more strongly correlated with REF GPA scores than impact factors. Would a simpler model using just the Google Scholar metric perform just as well as the more complex two metric model?
+
+```{r fig.cap='Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Metrics for a Test Set of 17 Randomly Selected Universities'}
+
+m2 <- randomForest(ref_gpa ~ google_40_perc, data = train)
+
+
+# Compare predicted to actual in the test data set
+pred_2 <- predict(object = m2, newdata = test)
+compare_2 <- data.frame(actual = test$ref_gpa, predicted = pred_2)
+compare_2$residuals <- compare_2$actual - compare_2$predicted
+
+ggplot(compare_2, aes(actual, predicted)) +
+    geom_point() +
+    scale_y_continuous(limits = c(0, 4)) +
+    scale_x_continuous(limits = c(0, 4)) +
+    geom_abline(intercept = 0, slope = 1, linetype = 'dotted') +
+    xlab('\nActual REF GPA') + ylab('Predicted REF GPA\n') +
+    theme_bw()
+
+```
+
+
+The mean prediction error when using only the Google Scholar metric was only `r mean(compare_2$residuals) %>% round(digits = 2)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(compare_2$residuals) %>% round(digits = 2)` GPA points or `r (mean(compare_2$residuals)  / 4) %>% round(digits = 3) * 100`% of the GPA scale. The Goolge Scholar-only model actually out performs the the more complex model that also included information on impact factors.
+
+
+
+# Top 20 (IR + PS) Google Scholar Journals (February 2016)
+
+For reference, the following is a list of the top 20 journals in the Google Scholar IR and Political Science categories. We also include the most recent Thomson-Reuters Impact factor to enable comparison between the two metrics.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Impact factors
+impact <- import('data/raw/Impact Factor.xlsx')
+impact <- impact[, c(1, 3, 5)]
+names(impact) <- c('journal', 'impact_factor', 'google_top')
+impact$journal <- impact$journal %>% tolower
+
+impact$journal[impact$journal == 'governance-an international journal of policy administration and institutions'] <- 'governance'
+impact$journal[grep('^jcms', impact$journal)] <- 'jcms'
+impact$journal[grep('^millennium', impact$journal)] <- 'millennium'
+
+
+impact$google_top[!is.na(impact$google_top)] <- 1
+impact$google_top[is.na(impact$google_top)] <- 0
+
+
+google_ir <- impact %>% filter(google_top == 1) %>%
+                select(-google_top) %>% DropNA('journal')
+
+names(google_ir) <- c('Journal', 'TR Impact Factor')
+
+knitr::kable(google_ir)
+```
+
+
+[^impact_caveat]: E.g. new journals and journals not included in the impact factor list used. Note that we attempted to match all of the sumbitted articles' journal names with those on the impact factor list. However, due to spelling  variations in the two sets of journal names, some matches may not have been made.
+
+[^HEFCE]: <http://www.dcscience.net/2015_metrictideS2.pdf>
