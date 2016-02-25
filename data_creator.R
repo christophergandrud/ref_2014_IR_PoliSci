@@ -10,6 +10,7 @@ library(dplyr)
 library(rio)
 library(tidyr)
 library(DataCombine)
+library(stringr)
 
 # Set working directory
 possibles <- c('/git_repositories/ref_2014_IR_PoliSci/')
@@ -18,7 +19,7 @@ set_valid_wd(possibles)
 # All submissions ----------
 all_submissions <- import('data/raw/Output-Table 1.csv')
 
-# Only journals
+# Only journals ------
 journals <- all_submissions %>% filter(OutputType == 'D') %>%
     select(UKPRN, VolumeTitle)
 
@@ -30,7 +31,8 @@ comb_journals <- merge(school_codes, journals, by = 'UKPRN', all.y = T) %>%
     rename(journal = VolumeTitle)
 
 # Clean up journal titles to enable merging
-comb_journals$journal <- as.character(comb_journals$journal) %>% tolower
+comb_journals$journal <- as.character(comb_journals$journal) %>% tolower %>%
+                        str_trim(side = 'both')
 comb_journals$journal <- gsub('^the ', '', comb_journals$journal)
 comb_journals$journal <- gsub('&', 'and', comb_journals$journal)
 
@@ -43,7 +45,7 @@ comb_journals <- comb_journals %>% arrange(school, journal)
 impact <- import('data/raw/Impact Factor.xlsx')
 impact <- impact[, c(1, 3, 5)]
 names(impact) <- c('journal', 'impact_factor', 'google_top')
-impact$journal <- impact$journal %>% tolower
+impact$journal <- impact$journal %>% tolower %>% str_trim(side = 'both')
 
 # Clean up journal titles to enable merging
 impact$journal[impact$journal == 'governance-an international journal of policy administration and institutions'] <- 'governance'
@@ -74,6 +76,52 @@ school_level <- inner_join(total_impact, number_subs, by = 'school')
 school_level$mean_impact <- school_level$total_impact / school_level$total_subs
 
 school_level <- right_join(school_codes, school_level, by = 'school')
+
+# Books ----------
+# Only non edited books
+books <- all_submissions %>% filter(OutputType == 'A') %>%
+    select(UKPRN, Publisher) %>%
+    rename(publisher = Publisher)
+
+school_codes <- import('data/raw/Institution-Table 1.csv') %>%
+    select(UKPRN, Name) %>%
+    rename(school = Name)
+
+comb_books <- merge(school_codes, books, by = 'UKPRN', all.y = T)
+
+comb_books$publisher[comb_books$publisher == 'Oxford University Press USA'] <- 'Oxford University Press'
+comb_books$publisher[comb_books$publisher == 'Oxford University Press, USA'] <- 'Oxford University Press'
+comb_books$publisher[comb_books$publisher == 'Oxford University Press (Oxford)'] <- 'Oxford University Press'
+comb_books$publisher[comb_books$publisher == 'Oxford Universtiy Press'] <- 'Oxford University Press'
+comb_books$publisher[comb_books$publisher == 'OUP'] <- 'Oxford University Press'
+comb_books$publisher[comb_books$publisher == 'CUP'] <- 'Cambridge University Press'
+comb_books$publisher <- gsub('Univ Pr', 'University Press', comb_books$publisher)
+comb_books$publisher <- gsub('UP', 'University Press', comb_books$publisher)
+comb_books$publisher[comb_books$publisher == 'Stanford University Press, Stanford'] <- 'Stanford University Press'
+comb_books$publisher[comb_books$publisher == 'Columbia University Press, London'] <- 'Columbia University Press'
+
+
+comb_books$publisher <- comb_books$publisher %>% 
+                            str_trim(side = 'both')
+comb_books$publisher <- gsub('^the ', '', comb_books$publisher)
+
+unique(comb_books$publisher)[order(unique(comb_books$publisher))]
+
+# List of top university presses
+top_press_list <- c('Cambridge University Press', 'Oxford University Press',
+                    'MIT Press', 'Cornell University Press',
+                    'University of Michigan Press', 'Princeton University Press',
+                    'University of Pennsylvania Press',
+                    'University of Chicago Press', 'Columbia University Press',
+                    'Yale University Press', 'University of California Press',
+                    'Stanford University Press', 'Harvard University Press')
+
+comb_books$top_press <- 0
+comb_books$top_press[comb_books$publisher %in% top_press_list] <- 1
+comb_books$fake <- 1
+
+comb_books <- comb_books %>% group_by(school) %>% 
+                summarise(top_up_perc = (sum(top_press) / sum(fake)) * 100)
 
 # REF scores ----------------
 ref_scores <- import('data/raw/REF2014 Results.xlsx', skip = 6) %>%
@@ -133,4 +181,7 @@ comb_out <- merge(outputs[, c('UKPRN', 'school', 'mean_impact')],
                   comb_google[, c('UKPRN', 'google_40_perc', 'google_40_plus',
                                   'ref_gpa')],
                   by = 'UKPRN')
+
+comb_out <- merge(comb_out, comb_books)
+
 export(comb_out, 'data/gpa_impact_google.csv')

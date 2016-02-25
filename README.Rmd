@@ -1,14 +1,14 @@
 ---
-title: "REF IR/Political Science Prediction Models (version 0.2)"
+title: "REF IR/Political Science Prediction Models (version 0.3)"
 author: "Christopher Gandrud"
-date: "23 February 2016"
+date: "25 February 2016"
 output:
-  html_document:
-    fig_caption: yes
-    keep_md: yes
   pdf_document:
     fig_caption: yes
     keep_tex: yes
+  html_document:
+    fig_caption: yes
+    keep_md: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -22,7 +22,7 @@ library(ggplot2)
 library(gridExtra)
 library(tidyr)
 
-set.seed(100)
+set.seed(200)
 
 main <- import('data/gpa_impact_google.csv')
 main <- main %>% DropNA('ref_gpa')
@@ -45,38 +45,41 @@ train <- main[rows,]
 test <- main[! rownames(main) %in% rows,]
 
 # Estimate model
-m1 <- randomForest(ref_gpa ~ google_40_perc + mean_impact, data = train)
+m1 <- randomForest(ref_gpa ~ google_40_perc + mean_impact + top_up_perc, data = train)
 
 varImpPlot(m1)
 
 # Compare predicted to actual in the test data set
 pred <- predict(object = m1, newdata = test)
-compare <- data.frame(actual = test$ref_gpa, predicted = pred)
-compare$residuals <- compare$actual - compare$predicted
+compare_1 <- data.frame(actual = test$ref_gpa, predicted = pred)
+compare_1$residuals <- compare_1$actual - compare_1$predicted
 ```
 
 I conducted a simple Random Forest Regression to examine how IR/Political Science REF 2014 Output GPAs could be predicted using:
 
-- **Mean Impact Factor** for all of the journal article submissions that each university made. Note: if a journal was not assigned an impact factor[^impact_caveat] it is effectively given an impact factor of 0.
+- **Mean Journal Impact Factor** for all of the journal article submissions that each university made. Note: if a journal was not assigned an impact factor[^impact_caveat] it is effectively given an impact factor of 0.
 
-- **Percent** of article submissions from journals in the **top 20** IR or Political Science categories assembled by Google Scholar.
+- **Percent of journal article** submissions from journals in the **top 20** IR or Political Science categories assembled by Google Scholar.
 
-Both of these metrics are highly correlated with REF Output GPAs. Mean impact factor has a correlation coefficient of `r cor(main$ref_gpa, main$mean_impact) %>% round(digits = 2)` with REF Output GPAs and the REF GPA correlation the Google Scholar metric is `r cor(main$ref_gpa, main$google_40_perc) %>% round(digits = 2)`. The following figure further illustrates these close relationships and City University's placement within them. 
+- **Percent of non-edited books** submitted that were published by a **top university press** (see table in the Appendix for the complete list).
 
-It is important to note that neither of these metrics contain information on books and other non-journal materials which are also submitted to the REF.
+All of these metrics are highly correlated with REF Output GPAs. Mean impact factor has a correlation coefficient of `r cor(main$ref_gpa, main$mean_impact) %>% round(digits = 2)` with REF Output GPAs. The REF GPA correlation with the Google Scholar metric is `r cor(main$ref_gpa, main$google_40_perc) %>% round(digits = 2)` and `r cor(main$ref_gpa, main$top_up_perc) %>% round(digits = 2)` with the percentage of books submitted that were published by a top university press. The following figure further illustrates these close relationships and City University's placement within them. 
 
-```{r descript, echo=FALSE, warning=FALSE, fig.cap='Comparing Universities\' REF 2014 Output GPA to Journal Submission Metrics', fig.lp='fig:'}
+It is important to note that neither of these metrics contain information on other materials including edited volues which are also submitted to the REF.
+
+```{r descript, echo=FALSE, warning=FALSE, fig.cap='Comparing Universities\' REF 2014 Output GPA to Journal Research Output Metrics', fig.lp='fig:'}
 
 custom_col <- c("#F2300F", "#E1BD6D", "#0b775e", "#EABE94", "#35274A")
 
-gathered <- main %>% gather(metric, value, 3:4)
+gathered <- main %>% gather(metric, value, c(3:4, 7))
 gathered$metric[gathered$metric == 'google_40_perc'] <- '% at Top of Google'
 gathered$metric[gathered$metric == 'mean_impact'] <- 'Mean Impact Factor'
+gathered$metric[gathered$metric == 'top_up_perc'] <- '% of Books in Top UP'
 
 ggplot(gathered, aes(value, ref_gpa)) +
     stat_smooth(colour = 'black') +
     geom_point(aes(colour = school_label, size = highlight, alpha = highlight)) +
-    facet_wrap(~ metric, scales = 'free') +
+    facet_wrap(~ metric, scales = 'free', ncol = 2) +
     scale_colour_manual(values = custom_col, name = '') +
     scale_alpha_discrete(range = c(0.3, 1)) +
     #xlab('\nMean Journal Submission Impact Factor') +
@@ -85,12 +88,12 @@ ggplot(gathered, aes(value, ref_gpa)) +
     theme_bw() + guides(size = FALSE, alpha = FALSE)
 ```
 
-# More Complex Model: Google Scholar + Impact Factor
+# More Complex Model: Google Scholar + Impact Factor + Books
 
-To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). The following figure compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line. The mean absolute prediction error when using the two journal metrics was `r mean(abs(compare$residuals)) %>% round(digits = 2)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(abs(compare$residuals)) %>% round(digits = 2)` GPA points or `r (mean(abs(compare$residuals))  / 4) %>% round(digits = 3) * 100`% of the GPA scale.
+To examine how well these metrics predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). The following figure compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line. The mean absolute prediction error when using the two journal metrics was `r mean(abs(compare_1$residuals)) %>% round(digits = 2)`. In other words, on average the model incorrectly predicted the REF GPA score by `r mean(abs(compare_1$residuals)) %>% round(digits = 2)` GPA points or `r (mean(abs(compare_1$residuals))  / 4) %>% round(digits = 3) * 100`% of the GPA scale.
 
-```{r fig.cap='Actual vs. Predicted 2014 REF Output GPAs Using Both Journal Metrics for a Test Set of 17 Randomly Selected Universities'}
-ggplot(compare, aes(actual, predicted)) +
+```{r fig.cap='Actual vs. Predicted 2014 REF Output GPAs Using All Output Metrics for a Test Set of 17 Randomly Selected Universities'}
+ggplot(compare_1, aes(actual, predicted)) +
     geom_point() +
     scale_y_continuous(limits = c(0, 4)) +
     scale_x_continuous(limits = c(0, 4)) +

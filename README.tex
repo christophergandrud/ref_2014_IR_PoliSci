@@ -9,11 +9,10 @@
 \else % if luatex or xelatex
   \ifxetex
     \usepackage{mathspec}
-    \usepackage{xltxtra,xunicode}
   \else
     \usepackage{fontspec}
   \fi
-  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
   \newcommand{\euro}{€}
 \fi
 % use upquote if available, for straight quotes in verbatim environments
@@ -24,22 +23,13 @@
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
 \usepackage[margin=1in]{geometry}
-\ifxetex
-  \usepackage[setpagesize=false, % page size defined by xetex
-              unicode=false, % unicode breaks when used with xetex
-              xetex]{hyperref}
-\else
-  \usepackage[unicode=true]{hyperref}
-\fi
-\hypersetup{breaklinks=true,
-            bookmarks=true,
+\usepackage{hyperref}
+\PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
+\hypersetup{unicode=true,
+            pdftitle={REF IR/Political Science Prediction Models (version 0.3)},
             pdfauthor={Christopher Gandrud},
-            pdftitle={REF IR/Political Science Prediction Models (version 0.2)},
-            colorlinks=true,
-            citecolor=blue,
-            urlcolor=blue,
-            linkcolor=magenta,
-            pdfborder={0 0 0}}
+            pdfborder={0 0 0},
+            breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
 \usepackage{longtable,booktabs}
 \usepackage{graphicx,grffile}
@@ -73,7 +63,7 @@
 }
 
 \setlength{\droptitle}{-2em}
-  \title{REF IR/Political Science Prediction Models (version 0.2)}
+  \title{REF IR/Political Science Prediction Models (version 0.3)}
   \pretitle{\vspace{\droptitle}\centering\huge}
   \posttitle{\par}
   \author{Christopher Gandrud}
@@ -81,7 +71,8 @@
   \postauthor{\par}
   \predate{\centering\large\emph}
   \postdate{\par}
-  \date{23 February 2016}
+  \date{25 February 2016}
+
 
 
 % Redefines (sub)paragraphs to behave more like sections
@@ -102,71 +93,76 @@ IR/Political Science REF 2014 Output GPAs could be predicted using:
 
 \begin{itemize}
 \item
-  \textbf{Mean Impact Factor} for all of the journal article submissions
-  that each university made. Note: if a journal was not assigned an
-  impact factor\footnote{E.g. new journals and journals not included in
-    the impact factor list used. Note that we attempted to match all of
-    the sumbitted articles' journal names with those on the impact
-    factor list. However, due to spelling variations in the two sets of
-    journal names, some matches may not have been made.} it is
+  \textbf{Mean Journal Impact Factor} for all of the journal article
+  submissions that each university made. Note: if a journal was not
+  assigned an impact factor\footnote{E.g. new journals and journals not
+    included in the impact factor list used. Note that we attempted to
+    match all of the submitted articles' journal names with those on the
+    impact factor list. However, due to spelling variations in the two
+    sets of journal names, some matches may not have been made.} it is
   effectively given an impact factor of 0.
 \item
-  \textbf{Percent} of article submissions from journals in the
+  \textbf{Percent of journal article} submissions from journals in the
   \textbf{top 20} IR or Political Science categories assembled by Google
   Scholar.
+\item
+  \textbf{Percent of non-edited books} submitted that were published by
+  a \textbf{top university press} (see table in the Appendix for the
+  complete list).
 \end{itemize}
 
-Both of these metrics are highly correlated with REF Output GPAs. Mean
-impact factor has a correlation coefficient of 0.68 with REF Output GPAs
-and the REF GPA correlation the Google Scholar metric is 0.76. The
-following figure further illustrates these close relationships and City
-University's placement within them.
+All of these metrics are highly correlated with REF Output GPAs. Mean
+impact factor has a correlation coefficient of 0.68 with REF Output
+GPAs. The REF GPA correlation with the Google Scholar metric is 0.76 and
+0.7 with the percentage of books submitted that were published by a top
+university press. The following figure further illustrates these close
+relationships and City University's placement within them.
 
 It is important to note that neither of these metrics contain
-information on books and other non-journal materials which are also
+information on other materials including edited volues which are also
 submitted to the REF.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics{README_files/figure-latex/descript-1.pdf}
-\caption{Comparing Universities' REF 2014 Output GPA to Journal
-Submission Metrics}
+\caption{Comparing Universities' REF 2014 Output GPA to Journal Research
+Output Metrics}
 \end{figure}
 
-\section{More Complex Model: Google Scholar + Impact
-Factor}\label{more-complex-model-google-scholar-impact-factor}
+\section{More Complex Model: Google Scholar + Impact Factor +
+Books}\label{more-complex-model-google-scholar-impact-factor-books}
 
-To examine how well these journal metrics could predict REF Output GPAs
-I first ran the random forest regression model on a random sample of
-70\% of the 56 universities (i.e.~38) that made REF submissions for
-IR/Political Science. I then used the estimates from the model to
-predict the REF Output scores of the remaining 30\% (i.e.~17
-universities). The following figure compares the actual REF GPA scores
-to the predictions. Note: if the model perfectly predicted the GPA score
-then each dot would lie one the 45 degree line. The mean prediction
-error when using the two journal metrics was 0.05. In other words, on
-average the model incorrectly predicted the REF GPA score by 0.05 GPA
-points or 1.2\% of the GPA scale.
+To examine how well these metrics predict REF Output GPAs I first ran
+the random forest regression model on a random sample of 70\% of the 56
+universities (i.e.~38) that made REF submissions for IR/Political
+Science. I then used the estimates from the model to predict the REF
+Output scores of the remaining 30\% (i.e.~17 universities). The
+following figure compares the actual REF GPA scores to the predictions.
+Note: if the model perfectly predicted the GPA score then each dot would
+lie one the 45 degree line. The mean absolute prediction error when
+using the two journal metrics was 0.1. In other words, on average the
+model incorrectly predicted the REF GPA score by 0.1 GPA points or 2.5\%
+of the GPA scale.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics{README_files/figure-latex/unnamed-chunk-1-1.pdf}
-\caption{Actual vs.~Predicted 2014 REF Output GPAs Using Both Journal
+\caption{Actual vs.~Predicted 2014 REF Output GPAs Using All Output
 Metrics for a Test Set of 17 Randomly Selected Universities}
 \end{figure}
 
-\section{Simpler model: Google
-Scholar-only}\label{simpler-model-google-scholar-only}
+\section{Simpler model: Google Scholar
+Only}\label{simpler-model-google-scholar-only}
 
 The percentage of journal submissions in the top Google Scholar lists is
 more strongly correlated with REF GPA scores than impact factors. Would
 a simpler model using just the Google Scholar metric perform just as
 well as the more complex two metric model? The following figures shows
-actual vs.~predicted GPA scores for this model. The mean prediction
-error when using only the Google Scholar metric was 0.012. In other
-words, on average the model incorrectly predicted the REF GPA score by
-0.01 GPA points or 0.3\% of the GPA scale. The Goolge Scholar-only model
-actually out performs the the more complex model that also included
+actual vs.~predicted GPA scores for this model. The mean absolute
+prediction error when using only the Google Scholar metric was 0.2. In
+other words, on average the model incorrectly predicted the REF GPA
+score by 0.2 GPA points or 5\% of the GPA scale. The Google Scholar Only
+model slightly outperforms the more complex model that also included
 information on impact factors.
 
 \begin{figure}[htbp]
@@ -176,19 +172,20 @@ information on impact factors.
 Metric for a Test Set of 17 Randomly Selected Universities}
 \end{figure}
 
-\section{Google Plus}\label{google-plus}
+\section{Simple, But a Little More Complex: Google
+Plus}\label{simple-but-a-little-more-complex-google-plus}
 
 The Google Top 20 IR and Political Science lists are notably lacking
-important political economy journals, notably \emph{Review of
+important political economy journals, including \emph{Review of
 International Political Economy} and \emph{New Political Economy}. Does
 adding these journals to a ``Google Scholar Plus'' variable improve
 prediction performance? The following figure shows the predicted
 vs.~actual REF GPAs for our test sample using the Google Scholar Plus
-variable. The mean prediction error when using only the Google Scholar
-Plus metric was 0.005. In other words, on average the model incorrectly
-predicted the REF GPA score by 0.005 GPA points or 0.1\% of the GPA
-scale. The Goolge Scholar Plus model out performs both the two metric
-model and the Google Scholar only model.
+variable. The mean absolute prediction error when using only the Google
+Scholar Plus metric was 0.174. In other words, on average the model
+incorrectly predicted the REF GPA score by 0.174 GPA points or 4.4\% of
+the GPA scale. The Google Scholar Plus model slightly outperforms both
+the Two Metric model and the Google Scholar Only model.
 
 \begin{figure}[htbp]
 \centering
@@ -197,8 +194,19 @@ model and the Google Scholar only model.
 Plus Metric for a Test Set of 17 Randomly Selected Universities}
 \end{figure}
 
-\section{Top 20 (IR + PS) Google Scholar Journals (February
-2016)}\label{top-20-ir-ps-google-scholar-journals-february-2016}
+\section{Conclusion}\label{conclusion}
+
+For the International Relations/Political Science 2014 REF we can create
+highly accurate predictions of Output GPA using only universities'
+percentage of journal submissions that were from the Google Scholar IR
+and Political Science top 20 lists. Using subject specific knowledge to
+select two additional journals that are prominent in international
+political economy allows us to make even better predictions. It may be
+possible to make even better predictions by including information on
+high impact book publishers.
+
+\section{Appendix: Top 20 (IR + PS) Google Scholar Journals (February
+2016)}\label{appendix-top-20-ir-ps-google-scholar-journals-february-2016}
 
 For reference, the following is a list of the top 20 journals in the
 Google Scholar IR and Political Science categories. We also include the

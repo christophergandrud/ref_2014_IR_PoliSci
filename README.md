@@ -1,38 +1,40 @@
-# REF IR/Political Science Prediction Models (version 0.2)
+# REF IR/Political Science Prediction Models (version 0.3)
 Christopher Gandrud  
-23 February 2016  
+25 February 2016  
 
 
 
 I conducted a simple Random Forest Regression to examine how IR/Political Science REF 2014 Output GPAs could be predicted using:
 
-- **Mean Impact Factor** for all of the journal article submissions that each university made. Note: if a journal was not assigned an impact factor[^impact_caveat] it is effectively given an impact factor of 0.
+- **Mean Journal Impact Factor** for all of the journal article submissions that each university made. Note: if a journal was not assigned an impact factor[^impact_caveat] it is effectively given an impact factor of 0.
 
-- **Percent** of article submissions from journals in the **top 20** IR or Political Science categories assembled by Google Scholar.
+- **Percent of journal article** submissions from journals in the **top 20** IR or Political Science categories assembled by Google Scholar.
 
-Both of these metrics are highly correlated with REF Output GPAs. Mean impact factor has a correlation coefficient of 0.68 with REF Output GPAs and the REF GPA correlation the Google Scholar metric is 0.76. The following figure further illustrates these close relationships and City University's placement within them. 
+- **Percent of non-edited books** submitted that were published by a **top university press** (see table in the Appendix for the complete list).
 
-It is important to note that neither of these metrics contain information on books and other non-journal materials which are also submitted to the REF.
+All of these metrics are highly correlated with REF Output GPAs. Mean impact factor has a correlation coefficient of 0.68 with REF Output GPAs. The REF GPA correlation with the Google Scholar metric is 0.76 and 0.7 with the percentage of books submitted that were published by a top university press. The following figure further illustrates these close relationships and City University's placement within them. 
+
+It is important to note that neither of these metrics contain information on other materials including edited volues which are also submitted to the REF.
 
 <div class="figure">
-<img src="README_files/figure-html/descript-1.png" alt="Comparing Universities' REF 2014 Output GPA to Journal Submission Metrics"  />
-<p class="caption">Comparing Universities' REF 2014 Output GPA to Journal Submission Metrics</p>
+<img src="README_files/figure-html/descript-1.png" alt="Comparing Universities' REF 2014 Output GPA to Journal Research Output Metrics"  />
+<p class="caption">Comparing Universities' REF 2014 Output GPA to Journal Research Output Metrics</p>
 </div>
 
 # More Complex Model: Google Scholar + Impact Factor
 
-To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). The following figure compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line. The mean absolute prediction error when using the two journal metrics was 0.23. In other words, on average the model incorrectly predicted the REF GPA score by 0.23 GPA points or 5.8% of the GPA scale.
+To examine how well these journal metrics could predict REF Output GPAs I first ran the random forest regression model on a random sample of 70% of the 56 universities (i.e. 38) that made REF submissions for IR/Political Science. I then used the estimates from the model to predict the REF Output scores of the remaining 30% (i.e. 17 universities). The following figure compares the actual REF GPA scores to the predictions. Note: if the model perfectly predicted the GPA score then each dot would lie one the 45 degree line. The mean absolute prediction error when using the two journal metrics was 0.16. In other words, on average the model incorrectly predicted the REF GPA score by 0.16 GPA points or 4.1% of the GPA scale.
 
 <div class="figure">
-<img src="README_files/figure-html/unnamed-chunk-1-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Both Journal Metrics for a Test Set of 17 Randomly Selected Universities"  />
-<p class="caption">Actual vs. Predicted 2014 REF Output GPAs Using Both Journal Metrics for a Test Set of 17 Randomly Selected Universities</p>
+<img src="README_files/figure-html/unnamed-chunk-1-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using All Output Metrics for a Test Set of 17 Randomly Selected Universities"  />
+<p class="caption">Actual vs. Predicted 2014 REF Output GPAs Using All Output Metrics for a Test Set of 17 Randomly Selected Universities</p>
 </div>
 
 # Simpler model: Google Scholar Only
 
 
 
-The percentage of journal submissions in the top Google Scholar lists is more strongly correlated with REF GPA scores than impact factors. Would a simpler model using just the Google Scholar metric perform just as well as the more complex two metric model? The following figures shows actual vs. predicted GPA scores for this model. The mean absolute prediction error when using only the Google Scholar metric was 0.205. In other words, on average the model incorrectly predicted the REF GPA score by 0.21 GPA points or 5.1% of the GPA scale. The Google Scholar Only model slightly outperforms the more complex model that also included information on impact factors.
+The percentage of journal submissions in the top Google Scholar lists is more strongly correlated with REF GPA scores than impact factors. Would a simpler model using just the Google Scholar metric perform just as well as the more complex two metric model? The following figures shows actual vs. predicted GPA scores for this model. The mean absolute prediction error when using only the Google Scholar metric was 0.196. In other words, on average the model incorrectly predicted the REF GPA score by 0.2 GPA points or 4.9% of the GPA scale. The Google Scholar Only model slightly outperforms the more complex model that also included information on impact factors.
 
 <div class="figure">
 <img src="README_files/figure-html/unnamed-chunk-3-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Metric for a Test Set of 17 Randomly Selected Universities"  />
@@ -42,7 +44,7 @@ The percentage of journal submissions in the top Google Scholar lists is more st
 
 # Simple, But a Little More Complex: Google Plus
 
-The Google Top 20 IR and Political Science lists are notably lacking important political economy journals, including *Review of International Political Economy* and *New Political Economy*. Does adding these journals to a "Google Scholar Plus" variable improve prediction performance? The following figure shows the predicted vs. actual REF GPAs for our test sample using the Google Scholar Plus variable. The mean absolute prediction error when using only the Google Scholar Plus metric was 0.18. In other words, on average the model incorrectly predicted the REF GPA score by 0.18 GPA points or 4.5% of the GPA scale. The Google Scholar Plus model slightly outperforms both the Two Metric model and the Google Scholar Only model.
+The Google Top 20 IR and Political Science lists are notably lacking important political economy journals, including *Review of International Political Economy* and *New Political Economy*. Does adding these journals to a "Google Scholar Plus" variable improve prediction performance? The following figure shows the predicted vs. actual REF GPAs for our test sample using the Google Scholar Plus variable. The mean absolute prediction error when using only the Google Scholar Plus metric was 0.204. In other words, on average the model incorrectly predicted the REF GPA score by 0.204 GPA points or 5.1% of the GPA scale. The Google Scholar Plus model slightly outperforms both the Two Metric model and the Google Scholar Only model.
 
 <div class="figure">
 <img src="README_files/figure-html/unnamed-chunk-4-1.png" alt="Actual vs. Predicted 2014 REF Output GPAs Using Google Scholar Plus Metric for a Test Set of 17 Randomly Selected Universities"  />
