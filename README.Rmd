@@ -1,7 +1,7 @@
 ---
-title: "REF IR/Political Science Prediction Models (version 0.3)"
+title: "REF IR/Political Science Prediction Models (version 0.4)"
 author: "Christopher Gandrud"
-date: "25 February 2016"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   pdf_document:
     fig_caption: yes
@@ -46,6 +46,8 @@ test <- main[! rownames(main) %in% rows,]
 
 # Estimate model
 m1 <- randomForest(ref_gpa ~ google_40_perc + mean_impact + top_up_perc, data = train)
+m2 <- randomForest(ref_gpa ~ google_40_plus_ipe + mean_impact + top_up_perc, data = train)
+m3 <- randomForest(ref_gpa ~ google_40_plus_ipe_hr + mean_impact + top_up_perc, data = train)
 
 varImpPlot(m1)
 

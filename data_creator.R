@@ -38,6 +38,7 @@ comb_journals$journal <- gsub('&', 'and', comb_journals$journal)
 
 comb_journals$journal[grep('^jcms', comb_journals$journal)] <- 'jcms'
 comb_journals$journal[grep('^millennium', comb_journals$journal)] <- 'millennium'
+comb_journals$journall[grep('^human rights quarterly', comb_journals$journal)] <- 'human rights quarterly'
 
 comb_journals <- comb_journals %>% arrange(school, journal)
 
@@ -51,6 +52,7 @@ impact$journal <- impact$journal %>% tolower %>% str_trim(side = 'both')
 impact$journal[impact$journal == 'governance-an international journal of policy administration and institutions'] <- 'governance'
 impact$journal[grep('^jcms', impact$journal)] <- 'jcms'
 impact$journal[grep('^millennium', impact$journal)] <- 'millennium'
+impact$journal[grep('^human rights quarterly', impact$journal)] <- 'human rights quarterly'
 
 # Create dummy for whether or not journal is in the Google IR and Political Science top 20
 impact$google_top[!is.na(impact$google_top)] <- 1
@@ -60,9 +62,17 @@ comb <- left_join(comb_journals, impact, by = 'journal')
 
 comb$google_top[is.na(comb$google_top)] <- 0
 
-comb$google_plus <- comb$google_top
-comb$google_plus[comb$journal == 'review of international political economy'] <- 1
-comb$google_plus[comb$journal == 'new political economy'] <- 1
+comb$google_plus_ipe <- comb$google_top
+comb$google_plus_ipe[comb$journal == 'review of international political economy'] <- 1
+comb$google_plus_ipe[comb$journal == 'new political economy'] <- 1
+
+comb$google_plus_ipe_hr <- comb$google_plus_ipe
+comb$google_plus_ipe_hr[comb$journal == 'human rights quarterly'] <- 1
+comb$google_plus_ipe_hr[comb$journal == 'international journal of human rights'] <- 1
+comb$google_plus_ipe_hr[comb$journal == 'human rights review'] <- 1
+comb$google_plus_ipe_hr[comb$journal == 'journal of human rights'] <- 1
+comb$google_plus_ipe_hr[comb$journal == 'journal of human rights practice'] <- 1
+comb$google_plus_ipe_hr[grep('^humanity', comb$journal)] <- 1
 
 # Create counter for total submissions
 comb$fake <- 1
@@ -159,10 +169,14 @@ outputs$school_label <- outputs$school_label %>% as.factor
 google_40 <- comb %>% group_by(UKPRN) %>%
     summarize(google_40_perc = (sum(google_top) / sum(fake)) * 100)
 
-google_40_plus <- comb %>% group_by(UKPRN) %>%
-    summarize(google_40_plus = (sum(google_plus) / sum(fake)) * 100)
+google_40_plus_ipe <- comb %>% group_by(UKPRN) %>%
+    summarize(google_40_plus_ipe = (sum(google_plus_ipe) / sum(fake)) * 100)
 
-comb_google <- inner_join(google_40, google_40_plus, by = 'UKPRN')
+google_40_plus_ipe_hr <- comb %>% group_by(UKPRN) %>%
+    summarize(google_40_plus_ipe_hr = (sum(google_plus_ipe_hr) / sum(fake)) * 100)
+
+comb_google <- inner_join(google_40, google_40_plus_ipe, by = 'UKPRN')
+comb_google <- inner_join(comb_google, google_40_plus_ipe_hr, by = 'UKPRN')
 comb_google <- inner_join(comb_google, ref_scores, by = 'UKPRN')
 
 comb_google <- comb_google %>% filter(category == 'Outputs')
@@ -178,7 +192,8 @@ comb_google$highlight[comb_google$school_label != 'Other'] <- 1
 comb_google$highlight <- comb_google$highlight %>% as.factor
 
 comb_out <- merge(outputs[, c('UKPRN', 'school', 'mean_impact')],
-                  comb_google[, c('UKPRN', 'google_40_perc', 'google_40_plus',
+                  comb_google[, c('UKPRN', 'google_40_perc', 
+                                  'google_40_plus_ipe', 'google_40_plus_ipe_hr',
                                   'ref_gpa')],
                   by = 'UKPRN')
 
